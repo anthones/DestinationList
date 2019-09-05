@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Dispatch } from "redux";
 import { ActionTypes } from "./types";
+import { translations } from "../config/translations";
 const url = process.env.REACT_APP_LOGIN_URI;
 
 export interface User {
@@ -44,14 +45,24 @@ export const authenticateUser = (data: User) => async (dispatch: Dispatch) => {
       payload: response.data
     });
   } catch (error) {
-    if (data.errorCounter) {
-      error.response.data.errorCounter = data.errorCounter + 1;
+    if (error.response.data) {
+      if (data.errorCounter) {
+        error.response.data.errorCounter = data.errorCounter + 1;
+      } else {
+        error.response.data.errorCounter = 1;
+      }
+      dispatch<AuthenticateErrorAction>({
+        type: ActionTypes.authenticateError,
+        payload: error.response.data
+      });
     } else {
-      error.response.data.errorCounter = 1;
+      dispatch<AuthenticateErrorAction>({
+        type: ActionTypes.authenticateError,
+        payload: {
+          message: translations.en.specificLoginError,
+          errorCounter: data.errorCounter!
+        }
+      });
     }
-    dispatch<AuthenticateErrorAction>({
-      type: ActionTypes.authenticateError,
-      payload: error.response.data
-    });
   }
 };
